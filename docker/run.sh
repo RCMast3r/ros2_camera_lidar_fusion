@@ -2,6 +2,7 @@
 
 isRunning=`docker ps -f name=v | grep -c "ros2_camera_lidar_fusion"`;
 
+sudo sysctl -w net.core.rmem_max=2147483647
 if [ $isRunning -eq 0 ]; then
     xhost +local:docker
     docker rm ros2_camera_lidar_fusion
@@ -10,6 +11,10 @@ if [ $isRunning -eq 0 ]; then
         -it \
         --env="DISPLAY" \
         --env="QT_X11_NO_MITSHM=1" \
+        --env="RMW_IMPLEMENTATION=rmw_cyclonedds_cpp" \
+        --env="ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST" \
+        --env="RMW_CONNEXT_PUBLICATION_MODE=ASYNCHRONOUS" \
+        --env="CYCLONEDDS_URI=file:///ros2_ws/src/ros2_camera_lidar_fusion/config/ddsconfig.xml" \
         --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
         --net host \
         --ipc host \

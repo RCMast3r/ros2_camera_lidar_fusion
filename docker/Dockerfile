@@ -1,8 +1,8 @@
-FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
+FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04
 
 LABEL maintainer="Clemente Donoso <clemente.donosok@gmail.com>"
 ENV DEBIAN_FRONTEND=noninteractive
-ENV ROS_DISTRO=humble
+ENV ROS_DISTRO=jazzy
 
 ###### Install ROS2
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
@@ -20,14 +20,19 @@ RUN rosdep init && rosdep update
 ###### Install python packages
 RUN apt-get install -y \
     python-is-python3 \
-    python3-pip
+    python3-pip \
+    python3-opencv \
+    python3-numpy \
+    python3-matplotlib \
+    python3-pandas 
+    # python3-open3d
 
-RUN pip install opencv-python
-RUN pip install --upgrade numpy==1.24.3
-RUN pip install matplotlib==3.6.0
-RUN pip install \
-    pandas \
-    open3d
+# RUN pip install opencv-python
+# RUN pip install --upgrade numpy==1.24.3
+# RUN pip install matplotlib==3.6.0
+RUN pip install open3d
+#     pandas \
+#     open3d
     
 ###### Install package dependencies
 RUN apt-get install -y \
@@ -39,7 +44,8 @@ RUN apt-get install -y \
 RUN apt-get install -y \
     ros-${ROS_DISTRO}-pcl-ros \
     ros-${ROS_DISTRO}-pcl-conversions \
-    ros-${ROS_DISTRO}-cv-bridge
+    ros-${ROS_DISTRO}-cv-bridge \
+    ros-${ROS_DISTRO}-rmw-cyclonedds-cpp
 
 ###### Build the workspace
 RUN mkdir -p /ros2_ws/src
