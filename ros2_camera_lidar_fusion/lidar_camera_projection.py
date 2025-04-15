@@ -15,7 +15,7 @@ from message_filters import Subscriber, ApproximateTimeSynchronizer
 
 from ros2_camera_lidar_fusion.read_yaml import extract_configuration
 
-
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 def load_extrinsic_matrix(yaml_path: str) -> np.ndarray:
     if not os.path.isfile(yaml_path):
         raise FileNotFoundError(f"No extrinsic file found: {yaml_path}")
@@ -104,10 +104,14 @@ class LidarCameraProjectionNode(Node):
         image_topic = config_file['camera']['image_topic']
         self.get_logger().info(f"Subscribing to lidar topic: {lidar_topic}")
         self.get_logger().info(f"Subscribing to image topic: {image_topic}")
-
-        self.image_sub = Subscriber(self, Image, image_topic)
-        self.lidar_sub = Subscriber(self, PointCloud2, lidar_topic)
-
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_ALL,
+            depth=10
+        )
+        self.image_sub = Subscriber(self, Image, image_topic, qos_profile=qos_profile)
+        self.lidar_sub = Subscriber(self, PointCloud2, lidar_topic, qos_profile=qos_profile)
+        
         self.ts = ApproximateTimeSynchronizer(
             [self.image_sub, self.lidar_sub],
             queue_size=5,

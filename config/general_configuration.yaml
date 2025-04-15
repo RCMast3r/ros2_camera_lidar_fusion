@@ -1,20 +1,20 @@
 lidar:
-  lidar_topic: /rslidar_points
-  frame_id: rslidar
+  lidar_topic: /points_relay
+  frame_id: /os_lidar
 
 camera:
-  image_topic: /pcl_human_segmentation/camera/raw_image
-  projected_topic: /pcl_human_segmentation/camera/projected_image
+  image_topic: /image_relay
+  projected_topic: /image_projected
   image_size:
-    width: 640
-    height: 480
-  frame_id: camera
+    width: 1920
+    height: 1080
+  frame_id: /camera
 
 chessboard:
   pattern_size:
-    rows: 7
-    columns: 9
-  square_size_meters: 0.41
+    rows: 13
+    columns: 19
+  square_size_meters: 0.029
 
 general:
   config_folder: /ros2_ws/src/ros2_camera_lidar_fusion/config
@@ -22,8 +22,8 @@ general:
   correspondence_file: ros2_camera_lidar_fusion_correspondences.txt
   camera_intrinsic_calibration: camera_intrinsic_calibration.yaml
   camera_extrinsic_calibration: camera_extrinsic_calibration.yaml
-  slop: 0.1
+  slop: 0.7
   max_file_saved: 10
-  keyboard_listener: True
+  keyboard_listener: False
   get_intrinsics: True
   get_extrinsics: True

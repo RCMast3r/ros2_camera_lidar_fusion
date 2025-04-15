@@ -24,13 +24,13 @@ RUN apt-get install -y \
     python3-opencv \
     python3-numpy \
     python3-matplotlib \
-    python3-pandas 
+    python3-pandas
     # python3-open3d
 
 # RUN pip install opencv-python
 # RUN pip install --upgrade numpy==1.24.3
 # RUN pip install matplotlib==3.6.0
-RUN pip install open3d
+RUN pip install open3d --break-system-packages
 #     pandas \
 #     open3d
     

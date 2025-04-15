@@ -98,8 +98,8 @@ class CameraCalibrationNode(Node):
                 'square_size_meters': self.square_size
             },
             'image_size': {
-                'width': 640,
-                'height': 480
+                'width': 1920,
+                'height': 1080
             },
             'rms_reprojection_error': ret
         }
@@ -118,6 +118,7 @@ def main(args=None):
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:
+        node.get_logger().info("Calibration saving!")
         node.save_calibration()
         node.get_logger().info("Calibration process completed.")
     finally:

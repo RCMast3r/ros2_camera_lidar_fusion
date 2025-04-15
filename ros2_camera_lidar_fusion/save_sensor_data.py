@@ -10,6 +10,8 @@ from sensor_msgs_py import point_cloud2
 from message_filters import Subscriber, ApproximateTimeSynchronizer
 import threading
 
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+
 from ros2_camera_lidar_fusion.read_yaml import extract_configuration
 
 class SaveData(Node):
@@ -33,49 +35,68 @@ class SaveData(Node):
             os.makedirs(self.storage_path)
         self.get_logger().warn(f'Data will be saved at {self.storage_path}')
 
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_ALL,
+            depth=10
+        )
+
         self.image_sub = Subscriber(
             self,
             Image,
-            self.image_topic
+            self.image_topic,
+            qos_profile = qos_profile
+            
         )
+        # self.image_sub.registerCallback(self.image_sub_cb)
+
         self.pointcloud_sub = Subscriber(
             self,
             PointCloud2,
-            self.lidar_topic
+            self.lidar_topic,
+            qos_profile = qos_profile
         )
+        # self.pointcloud_sub.registerCallback(self.points_sub_cb)
 
         self.ts = ApproximateTimeSynchronizer(
             [self.image_sub, self.pointcloud_sub],
-            queue_size=10,
-            slop=self.slop
+            queue_size=20,
+            slop=0.3
+            # allow_headerless=True
         )
         self.ts.registerCallback(self.synchronize_data)
 
-        self.save_data_flag = not self.keyboard_listener_enabled
-        if self.keyboard_listener_enabled:
-            self.start_keyboard_listener()
+        # self.save_data_flag = not self.keyboard_listener_enabled
+        # if self.keyboard_listener_enabled:
+        #     self.start_keyboard_listener()
 
-    def start_keyboard_listener(self):
-        """Starts a thread to listen for keyboard events."""
-        def listen_for_space():
-            while True:
-                key = input("Press 'Enter' to save data (keyboard listener enabled): ")
-                if key.strip() == '':
-                    self.save_data_flag = True
-                    self.get_logger().info('Space key pressed, ready to save data')
-        thread = threading.Thread(target=listen_for_space, daemon=True)
-        thread.start()
+    # def start_keyboard_listener(self):
+    #     """Starts a thread to listen for keyboard events."""
+    #     def listen_for_space():
+    #         while True:
+    #             key = input("Press 'Enter' to save data (keyboard listener enabled): ")
+    #             if key.strip() == '':
+    #                 self.save_data_flag = True
+    #                 self.get_logger().info('Space key pressed, ready to save data')
+    #     thread = threading.Thread(target=listen_for_space, daemon=True)
+    #     thread.start()
+    # def image_sub_cb(self, image_data):
+    #     self.get_logger().info('erm, got image_data')
+
+    # def points_sub_cb(self, pd):
+    #     self.get_logger().info('erm, got points data')
 
     def synchronize_data(self, image_msg, pointcloud_msg):
         """Handles synchronized messages and saves data if the flag is set."""
-        if self.save_data_flag:
-            file_name = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-            self.get_logger().info(f'Synchronizing data at {file_name}')
-            total_files = len(os.listdir(self.storage_path))
-            if total_files < self.max_file_saved:
-                self.save_data(image_msg, pointcloud_msg, file_name)
-                if self.keyboard_listener_enabled:
-                    self.save_data_flag = False
+        # if self.save_data_flag:
+        file_name = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        self.get_logger().info(f'Synchronizing data at {file_name}')
+        total_files = len(os.listdir(self.storage_path))
+
+        if total_files < 10:
+            self.save_data(image_msg, pointcloud_msg, file_name)
+            # if self.keyboard_listener_enabled:
+            #     self.save_data_flag = False
 
     def pointcloud2_to_open3d(self, pointcloud_msg):
         """Converts a PointCloud2 message to an Open3D point cloud."""
